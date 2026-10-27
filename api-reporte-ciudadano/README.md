@@ -154,8 +154,8 @@ operadores no se crean desde la app.
 | Método | Ruta | Acceso | Qué hace |
 |---|---|---|---|
 | `GET` | `/salud` | público | Estado de la API, motor de base y proveedor de archivos. |
-| `POST` | `/auth/registro` | público | Crea una cuenta de vecino. `{ nombre, email, contrasena, telefono? }` |
-| `POST` | `/auth/ingreso` | público | `{ email, contrasena }` → `{ token, usuario }` |
+| `POST` | `/auth/registro` | público | Crea una cuenta de vecino. `{ nombre, email, password, telefono?, dni? }` |
+| `POST` | `/auth/ingreso` | público | `{ email, password }` → `{ access_token, user }` |
 | `GET` | `/yo` | con sesión | El usuario de la sesión. |
 | `PATCH` | `/yo` | con sesión | `{ nombre?, telefono?, avisosActivos? }` |
 | `POST` | `/archivos` | con sesión | Sube una foto (jpeg/png/webp, 5 MB), un audio (m4a/aac/mp3, 10 MB) o un video (mp4, 30 MB). |

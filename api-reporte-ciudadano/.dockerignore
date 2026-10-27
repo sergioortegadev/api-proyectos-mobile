@@ -8,3 +8,5 @@ archivos
 test
 *.tsbuildinfo
 docs/prd.pdf
+# El stack Docker no entra en la imagen (docker/data lo crea Postgres con otros permisos)
+docker

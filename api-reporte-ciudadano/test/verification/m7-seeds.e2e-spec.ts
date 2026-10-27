@@ -21,7 +21,7 @@ let todos: R[] = [];
 const tokens = new Map<string, string>();
 
 async function ingresar(email: string, contrasena = 'demo1234') {
-  return ctx.http().post('/auth/ingreso').send({ email, contrasena });
+  return ctx.http().post('/auth/ingreso').send({ email, password: contrasena });
 }
 const conToken = (email: string): [string, string] => [
   'Authorization',
@@ -71,7 +71,7 @@ beforeAll(async () => {
     'operador.sur@demo.ar',
   ]) {
     const r = await ingresar(e);
-    tokens.set(e, r.body.datos?.token);
+    tokens.set(e, r.body.datos?.access_token);
   }
   const res = await ctx.http().get(`/reportes?estado=${ESTADOS}&porPagina=500`);
   todos = res.body.datos;
@@ -87,10 +87,10 @@ describe('ESPECIFICACION §8 — usuarios de demo con demo1234', () => {
   ])('%s ingresa y /yo es un Usuario', async (email, id, rol, zona) => {
     const r = await ingresar(email);
     expect(r.status).toBe(200);
-    esperarForma(r.body.datos.usuario, 'Usuario');
-    if (id) expect(r.body.datos.usuario.id).toBe(id);
-    expect(r.body.datos.usuario.rol).toBe(rol);
-    expect(r.body.datos.usuario.zonaId).toBe(zona);
+    esperarForma(r.body.datos.user, 'Usuario');
+    if (id) expect(r.body.datos.user.id).toBe(id);
+    expect(r.body.datos.user.rol).toBe(rol);
+    expect(r.body.datos.user.zonaId).toBe(zona);
     const yo = await ctx
       .http()
       .get('/yo')

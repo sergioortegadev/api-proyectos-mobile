@@ -24,11 +24,11 @@ describe('POST /auth/registro', () => {
     const res = await registro({
       nombre: 'Norma Pereyra',
       email,
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     expect(res.status).toBe(201);
     esperarContrato(res, 'Sesion');
-    const { token, usuario } = res.body.datos;
+    const { access_token: token, user: usuario } = res.body.datos;
     expect(token).toEqual(expect.any(String));
     expect(usuario).toEqual({
       id: expect.stringMatching(/^usr-[a-z0-9]{12}$/),
@@ -47,11 +47,11 @@ describe('POST /auth/registro', () => {
     const res = await registro({
       nombre: '  Ramón  ',
       email: `  ${email.toUpperCase()} `,
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: '3446 123456',
     });
     expect(res.status).toBe(201);
-    expect(res.body.datos.usuario).toMatchObject({
+    expect(res.body.datos.user).toMatchObject({
       nombre: 'Ramón',
       email,
       telefono: '3446 123456',
@@ -62,45 +62,45 @@ describe('POST /auth/registro', () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: '',
     });
     expect(res.status).toBe(201);
-    expect(res.body.datos.usuario.telefono).toBeNull();
+    expect(res.body.datos.user.telefono).toBeNull();
   });
 
   it('AGENTS §7.1 — no se puede pedir otro rol desde el registro', async () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       rol: 'operador',
     });
     esperarError(res, 400, 'VALIDACION_FALLIDA');
   });
 
   it.each([
-    ['sin nombre', { email: 'a@b.com', contrasena: 'clave1234' }, /nombre/],
+    ['sin nombre', { email: 'a@b.com', password: 'clave1234' }, /nombre/],
     [
       'nombre vacío',
-      { nombre: '   ', email: 'a@b.com', contrasena: 'clave1234' },
+      { nombre: '   ', email: 'a@b.com', password: 'clave1234' },
       /nombre/,
     ],
-    ['sin email', { nombre: 'Ana', contrasena: 'clave1234' }, /email/],
+    ['sin email', { nombre: 'Ana', password: 'clave1234' }, /email/],
     [
       'email inválido',
-      { nombre: 'Ana', email: 'ana', contrasena: 'clave1234' },
+      { nombre: 'Ana', email: 'ana', password: 'clave1234' },
       /email/,
     ],
     ['sin contraseña', { nombre: 'Ana', email: 'a@b.com' }, /contraseña/],
     [
       'contraseña corta',
-      { nombre: 'Ana', email: 'a@b.com', contrasena: '1234567' },
+      { nombre: 'Ana', email: 'a@b.com', password: '1234567' },
       /8 caracteres/,
     ],
     [
       'nombre que no es texto',
-      { nombre: 12, email: 'a@b.com', contrasena: 'clave1234' },
+      { nombre: 12, email: 'a@b.com', password: 'clave1234' },
       /nombre/,
     ],
     [
@@ -108,7 +108,7 @@ describe('POST /auth/registro', () => {
       {
         nombre: 'Ana',
         email: 'a@b.com',
-        contrasena: 'clave1234',
+        password: 'clave1234',
         zonaId: 'zon-norte',
       },
       /zonaId/,
@@ -124,13 +124,11 @@ describe('POST /auth/registro', () => {
 
   it('AGENTS §7.1 — EMAIL_YA_REGISTRADO sin distinguir mayúsculas', async () => {
     const email = unico();
-    await registro({ nombre: 'Ana', email, contrasena: 'clave1234' }).expect(
-      201,
-    );
+    await registro({ nombre: 'Ana', email, password: 'clave1234' }).expect(201);
     const res = await registro({
       nombre: 'Otra',
       email: email.toUpperCase(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     esperarError(res, 409, 'EMAIL_YA_REGISTRADO');
   });
@@ -138,8 +136,8 @@ describe('POST /auth/registro', () => {
   it('AGENTS §5.5 — dos registros simultáneos con el mismo email: uno pasa, el otro 409', async () => {
     const email = unico();
     const [a, b] = await Promise.all([
-      registro({ nombre: 'Ana', email, contrasena: 'clave1234' }),
-      registro({ nombre: 'Ana', email, contrasena: 'clave1234' }),
+      registro({ nombre: 'Ana', email, password: 'clave1234' }),
+      registro({ nombre: 'Ana', email, password: 'clave1234' }),
     ]);
     expect([a.status, b.status].sort()).toEqual([201, 409]);
     const perdedor = a.status === 409 ? a : b;
@@ -153,7 +151,7 @@ describe('POST /auth/registro', () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     expect(JSON.stringify(res.body)).not.toMatch(/scrypt|contrasena|clave1234/);
   });
@@ -164,11 +162,11 @@ describe('POST /auth/ingreso', () => {
     const { usuario } = await crearOperador(ctx, { zonaId: 'zon-norte' });
     const res = await ctx.http().post('/auth/ingreso').send({
       email: usuario.email.toUpperCase(),
-      contrasena: CONTRASENA_DE_PRUEBA,
+      password: CONTRASENA_DE_PRUEBA,
     });
     expect(res.status).toBe(200);
     esperarContrato(res, 'Sesion');
-    expect(res.body.datos.usuario).toMatchObject({
+    expect(res.body.datos.user).toMatchObject({
       id: usuario.id,
       rol: 'operador',
       zonaId: 'zon-norte',
@@ -180,11 +178,11 @@ describe('POST /auth/ingreso', () => {
     const res = await ctx
       .http()
       .post('/auth/ingreso')
-      .send({ email: usuario.email, contrasena: CONTRASENA_DE_PRUEBA });
+      .send({ email: usuario.email, password: CONTRASENA_DE_PRUEBA });
     const yo = await ctx
       .http()
       .get('/yo')
-      .set('Authorization', `Bearer ${res.body.datos.token}`);
+      .set('Authorization', `Bearer ${res.body.datos.access_token}`);
     expect(yo.status).toBe(200);
     expect(yo.body.datos.id).toBe(usuario.id);
   });
@@ -194,11 +192,11 @@ describe('POST /auth/ingreso', () => {
     const malaClave = await ctx
       .http()
       .post('/auth/ingreso')
-      .send({ email: usuario.email, contrasena: 'otra-clave' });
+      .send({ email: usuario.email, password: 'otra-clave' });
     const sinCuenta = await ctx
       .http()
       .post('/auth/ingreso')
-      .send({ email: 'nadie@mail.com', contrasena: 'otra-clave' });
+      .send({ email: 'nadie@mail.com', password: 'otra-clave' });
     esperarError(malaClave, 401, 'CREDENCIALES_INVALIDAS');
     esperarError(sinCuenta, 401, 'CREDENCIALES_INVALIDAS');
     expect(malaClave.body).toEqual(sinCuenta.body);

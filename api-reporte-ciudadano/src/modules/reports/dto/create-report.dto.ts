@@ -141,11 +141,12 @@ export class CrearReporteDto {
   @MaxLength(200, conMensaje('La dirección es demasiado larga.'))
   direccion: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '2026-09-14T10:22:00-03:00',
     description:
-      'Cuándo lo hizo el vecino (no cuándo se subió). ISO 8601 con offset; no puede ser futura.',
+      'Cuándo lo hizo el vecino (no cuándo se subió). ISO 8601 con offset; no puede ser futura. Opcional: si no viene, la API usa la hora actual.',
   })
+  @Opcional()
   @IsString()
   @ValidateBy(
     {
@@ -154,5 +155,5 @@ export class CrearReporteDto {
     },
     conMensaje('La fecha del reporte no tiene el formato correcto.'),
   )
-  creadoEn: string;
+  creadoEn?: string;
 }

@@ -73,12 +73,12 @@ describe('AGENTS §10.4 — Las semillas de demo cumplen el contrato', () => {
       const ingreso = await ctx
         .http()
         .post('/auth/ingreso')
-        .send({ email, contrasena: CONTRASENA_DEMO });
+        .send({ email, password: CONTRASENA_DEMO });
       expect(ingreso.status).toBe(200);
       const yo = await ctx
         .http()
         .get('/yo')
-        .set('Authorization', `Bearer ${ingreso.body.datos.token}`);
+        .set('Authorization', `Bearer ${ingreso.body.datos.access_token}`);
       esperarContrato(yo, 'Usuario');
     }
   });
@@ -87,8 +87,11 @@ describe('AGENTS §10.4 — Las semillas de demo cumplen el contrato', () => {
     const op = await ctx
       .http()
       .post('/auth/ingreso')
-      .send({ email: 'operador.norte@demo.ar', contrasena: CONTRASENA_DEMO });
-    const auth = ['Authorization', `Bearer ${op.body.datos.token}`] as const;
+      .send({ email: 'operador.norte@demo.ar', password: CONTRASENA_DEMO });
+    const auth = [
+      'Authorization',
+      `Bearer ${op.body.datos.access_token}`,
+    ] as const;
     const tipos = await ctx.http().get('/tipos-de-reporte');
     esperarContrato(tipos, 'TipoDeReporte');
     expect(tipos.body.meta.total).toBe(8);
@@ -124,8 +127,8 @@ describe('AGENTS §10.4 — Las semillas de demo cumplen el contrato', () => {
       const norma = await ctx
         .http()
         .post('/auth/ingreso')
-        .send({ email: 'norma@mail.com', contrasena: CONTRASENA_DEMO });
-      auth = ['Authorization', `Bearer ${norma.body.datos.token}`];
+        .send({ email: 'norma@mail.com', password: CONTRASENA_DEMO });
+      auth = ['Authorization', `Bearer ${norma.body.datos.access_token}`];
       const filas = await ctx.dataSource.getRepository(Reporte).find();
       todos = [];
       for (const f of filas) {
@@ -212,11 +215,11 @@ describe('AGENTS §10.4 — Las semillas de demo cumplen el contrato', () => {
       const nuevo = await ctx
         .http()
         .post('/auth/ingreso')
-        .send({ email: 'nuevo@demo.ar', contrasena: CONTRASENA_DEMO });
+        .send({ email: 'nuevo@demo.ar', password: CONTRASENA_DEMO });
       const vacia = await ctx
         .http()
         .get('/yo/reportes')
-        .set('Authorization', `Bearer ${nuevo.body.datos.token}`);
+        .set('Authorization', `Bearer ${nuevo.body.datos.access_token}`);
       expect(vacia.body.datos).toEqual([]);
       const suyos = await ctx
         .http()

@@ -17,6 +17,10 @@ export class Usuario {
   @ColumnaTexto(120)
   nombre: string;
 
+  /** Agregado por el grupo: opcional, texto libre hasta 20 caracteres. */
+  @ColumnaTexto(20, { nulo: true })
+  dni: string | null;
+
   /** Normalizado (minúsculas, sin espacios): el índice único no distingue mayúsculas. */
   @ColumnaTexto(254, { unico: true })
   email: string;

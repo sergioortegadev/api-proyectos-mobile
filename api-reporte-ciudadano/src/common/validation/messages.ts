@@ -8,8 +8,9 @@ import type { ValidationError } from 'class-validator';
 const ETIQUETAS: Record<string, string> = {
   nombre: 'el nombre',
   email: 'el email',
-  contrasena: 'la contraseña',
+  password: 'la contraseña',
   telefono: 'el teléfono',
+  dni: 'el DNI',
   avisosActivos: 'si querés recibir avisos',
   tokenExpo: 'el token de notificaciones',
   plataforma: 'la plataforma del teléfono',

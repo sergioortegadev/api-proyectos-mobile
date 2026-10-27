@@ -35,7 +35,7 @@ describe('AGENTS §7.3 — El error de validación nombra el primer campo, en ca
     expect(
       mensajeDeValidacion([
         error(
-          'contrasena',
+          'password',
           { minLength: 'x' },
           {
             value: 'abc',

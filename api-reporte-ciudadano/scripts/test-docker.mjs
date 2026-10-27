@@ -40,17 +40,20 @@ const PRUEBAS_DE_DATOS = [
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'norma@mail.com',
-          contrasena: 'demo1234',
+          password: 'demo1234',
         }),
       });
       const cuerpo = await res.json();
-      if (res.status !== 200 || typeof cuerpo?.datos?.token !== 'string') {
+      if (
+        res.status !== 200 ||
+        typeof cuerpo?.datos?.access_token !== 'string'
+      ) {
         throw new Error(
           `POST /auth/ingreso → ${res.status} ${JSON.stringify(cuerpo)}`,
         );
       }
       const yo = await fetch(`${BASE}/yo`, {
-        headers: { Authorization: `Bearer ${cuerpo.datos.token}` },
+        headers: { Authorization: `Bearer ${cuerpo.datos.access_token}` },
       });
       const datos = (await yo.json())?.datos;
       if (yo.status !== 200 || datos?.id !== 'usr-084') {
@@ -66,10 +69,10 @@ const PRUEBAS_DE_DATOS = [
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'norma@mail.com',
-          contrasena: 'demo1234',
+          password: 'demo1234',
         }),
       });
-      const { token } = (await ingreso.json()).datos;
+      const { access_token: token } = (await ingreso.json()).datos;
       const jpeg = new Uint8Array([
         0xff,
         0xd8,

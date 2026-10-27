@@ -56,6 +56,8 @@ export type Rol = "vecino" | "operador";
 
 export interface Usuario {
   id: string;
+  /** Agregado por el grupo (no está en el PRD): opcional. */
+  dni?: string;
   nombre: string;
   email: string;
   telefono: string | null;

@@ -289,14 +289,14 @@
       "additionalProperties": false,
       "description": "Respuesta de POST /auth/registro y POST /auth/ingreso.",
       "properties": {
-        "token": {
+        "access_token": {
           "type": "string"
         },
-        "usuario": {
+        "user": {
           "$ref": "#/definitions/Usuario"
         }
       },
-      "required": ["token", "usuario"],
+      "required": ["access_token", "user"],
       "type": "object"
     },
     "TipoDeReporte": {
@@ -328,6 +328,10 @@
           "type": "boolean"
         },
         "creadoEn": {
+          "type": "string"
+        },
+        "dni": {
+          "description": "Agregado por el grupo (no está en el PRD): opcional.",
           "type": "string"
         },
         "email": {

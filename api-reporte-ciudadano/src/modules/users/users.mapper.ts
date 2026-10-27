@@ -6,6 +6,7 @@ import type { Usuario } from './user.entity.js';
 export function aUsuario(u: Usuario): UsuarioContrato {
   return {
     id: u.id,
+    ...(u.dni ? { dni: u.dni } : {}),
     nombre: u.nombre,
     email: u.email,
     telefono: u.telefono,

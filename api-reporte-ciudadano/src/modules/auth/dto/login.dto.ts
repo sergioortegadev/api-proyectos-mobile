@@ -14,5 +14,5 @@ export class IngresoDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
-  contrasena: string;
+  password: string;
 }

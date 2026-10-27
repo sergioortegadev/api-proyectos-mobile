@@ -86,37 +86,40 @@ describe('AGENTS §7.1 / ESPECIFICACION §1 — Registro: forma y nulos', () => 
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: null,
     });
     expect(res.status).toBe(201);
     esperarContrato(res, 'Sesion');
-    expect(res.body.datos.usuario.telefono).toBeNull();
+    expect(res.body.datos.user.telefono).toBeNull();
   });
 
   it('un teléfono de sólo espacios nunca vuelve como texto en blanco', async () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: '   ',
     });
     if (res.status === 201) {
       esperarContrato(res, 'Sesion');
-      expect(res.body.datos.usuario.telefono).toBeNull();
+      expect(res.body.datos.user.telefono).toBeNull();
     } else {
       esperarError(res, 400, 'VALIDACION_FALLIDA');
     }
   });
 
-  it('la sesión tiene exactamente token y usuario', async () => {
+  it('la sesión tiene exactamente access_token y user', async () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
-    expect(Object.keys(res.body.datos).sort()).toEqual(['token', 'usuario']);
-    expect(Object.keys(res.body.datos.usuario).sort()).toEqual(
+    expect(Object.keys(res.body.datos).sort()).toEqual([
+      'access_token',
+      'user',
+    ]);
+    expect(Object.keys(res.body.datos.user).sort()).toEqual(
       [
         'avisosActivos',
         'creadoEn',
@@ -134,25 +137,25 @@ describe('AGENTS §7.1 / ESPECIFICACION §1 — Registro: forma y nulos', () => 
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: '12345678',
+      password: '12345678',
     });
     expect(res.status).toBe(201);
   });
 
   it.each([
-    ['contraseña numérica', { nombre: 'Ana', contrasena: 12345678 }],
+    ['contraseña numérica', { nombre: 'Ana', password: 12345678 }],
     [
       'teléfono numérico',
-      { nombre: 'Ana', contrasena: 'clave1234', telefono: 3446123456 },
+      { nombre: 'Ana', password: 'clave1234', telefono: 3446123456 },
     ],
-    ['nombre null', { nombre: null, contrasena: 'clave1234' }],
+    ['nombre null', { nombre: null, password: 'clave1234' }],
     [
       'avisosActivos en el registro',
-      { nombre: 'Ana', contrasena: 'clave1234', avisosActivos: false },
+      { nombre: 'Ana', password: 'clave1234', avisosActivos: false },
     ],
     [
       'id elegido por el cliente',
-      { nombre: 'Ana', contrasena: 'clave1234', id: 'usr-mio' },
+      { nombre: 'Ana', password: 'clave1234', id: 'usr-mio' },
     ],
   ])('400 VALIDACION_FALLIDA con %s', async (_caso, cuerpo) => {
     const res = await registro({ email: unico(), ...cuerpo });
@@ -186,12 +189,12 @@ describe('AGENTS §7.1 / ESPECIFICACION §1 — Registro: forma y nulos', () => 
     const res = await registro({
       nombre: largo,
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: '9'.repeat(200),
     });
     expect([201, 400]).toContain(res.status);
     if (res.status === 201) {
-      expect(res.body.datos.usuario.nombre).toBe(largo);
+      expect(res.body.datos.user.nombre).toBe(largo);
     } else {
       esperarError(res, 400, 'VALIDACION_FALLIDA');
     }
@@ -201,7 +204,7 @@ describe('AGENTS §7.1 / ESPECIFICACION §1 — Registro: forma y nulos', () => 
     const res = await registro({
       nombre: 'Ana',
       email: `${'a'.repeat(60)}.${'b'.repeat(60)}.${'c'.repeat(60)}@${'d'.repeat(60)}.com`,
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     expect([201, 400]).toContain(res.status);
   });
@@ -219,11 +222,11 @@ describe('AGENTS §6 — Registro: creadoEn en hora argentina con el reloj en lo
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     expect(res.status).toBe(201);
     esperarContrato(res, 'Sesion');
-    expect(res.body.datos.usuario.creadoEn).toBe(instante);
+    expect(res.body.datos.user.creadoEn).toBe(instante);
   });
 });
 
@@ -233,12 +236,14 @@ describe('AGENTS §7.2 — Token JWT', () => {
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
-    const [cabecera, carga] = (res.body.datos.token as string).split('.');
+    const [cabecera, carga] = (res.body.datos.access_token as string).split(
+      '.',
+    );
     expect(decodificar(cabecera).alg).toBe('HS256');
     const payload = decodificar(carga);
-    expect(payload.sub).toBe(res.body.datos.usuario.id);
+    expect(payload.sub).toBe(res.body.datos.user.id);
     expect(payload.rol).toBe('vecino');
     expect(payload.iat).toBe(Date.parse(AHORA) / 1000);
     expect(Number(payload.exp) - Number(payload.iat)).toBe(30 * 24 * 60 * 60);
@@ -275,14 +280,14 @@ describe('AGENTS §7.2 — Token JWT', () => {
     const pasado = await crearApp({ ahora: '2020-03-01T12:00:00-03:00' });
     try {
       const res = await registro(
-        { nombre: 'Ana', email: unico(), contrasena: 'clave1234' },
+        { nombre: 'Ana', email: unico(), password: 'clave1234' },
         pasado,
       );
       expect(res.status).toBe(201);
       const yo = await pasado
         .http()
         .get('/yo')
-        .set('Authorization', `Bearer ${res.body.datos.token}`);
+        .set('Authorization', `Bearer ${res.body.datos.access_token}`);
       expect(yo.status).toBe(200);
       esperarContrato(yo, 'Usuario');
       expect(yo.body.datos.creadoEn).toBe('2020-03-01T12:00:00-03:00');
@@ -296,42 +301,38 @@ describe('AGENTS §7.2 — Token JWT', () => {
 describe('AGENTS §7.1 — Ingreso', () => {
   it('el email se normaliza igual que en el registro (mayúsculas y espacios)', async () => {
     const email = unico();
-    await registro({ nombre: 'Ana', email, contrasena: 'clave1234' }).expect(
-      201,
-    );
+    await registro({ nombre: 'Ana', email, password: 'clave1234' }).expect(201);
     const res = await ingreso({
       email: `  ${email.toUpperCase()}  `,
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     expect(res.status).toBe(200);
     esperarContrato(res, 'Sesion');
-    expect(res.body.datos.usuario.email).toBe(email);
+    expect(res.body.datos.user.email).toBe(email);
   });
 
   it('un operador entra con su rol y su zona', async () => {
     const op = await crearOperador(ctx, { zonaId: 'zon-norte' });
     const res = await ingreso({
       email: op.usuario.email,
-      contrasena: CONTRASENA_DE_PRUEBA,
+      password: CONTRASENA_DE_PRUEBA,
     });
     expect(res.status).toBe(200);
     esperarContrato(res, 'Sesion');
-    expect(res.body.datos.usuario).toMatchObject({
+    expect(res.body.datos.user).toMatchObject({
       id: op.usuario.id,
       rol: 'operador',
       zonaId: 'zon-norte',
     });
-    expect(decodificar(res.body.datos.token.split('.')[1]).rol).toBe(
+    expect(decodificar(res.body.datos.access_token.split('.')[1]).rol).toBe(
       'operador',
     );
   });
 
   it('la contraseña distingue mayúsculas', async () => {
     const email = unico();
-    await registro({ nombre: 'Ana', email, contrasena: 'Clave1234' }).expect(
-      201,
-    );
-    const res = await ingreso({ email, contrasena: 'clave1234' });
+    await registro({ nombre: 'Ana', email, password: 'Clave1234' }).expect(201);
+    const res = await ingreso({ email, password: 'clave1234' });
     esperarError(res, 401, 'CREDENCIALES_INVALIDAS');
     mensajeParaPersonas(res);
   });
@@ -339,11 +340,11 @@ describe('AGENTS §7.1 — Ingreso', () => {
   it.each([
     [
       'campo de más',
-      { email: 'a@b.com', contrasena: 'clave1234', rol: 'operador' },
+      { email: 'a@b.com', password: 'clave1234', rol: 'operador' },
     ],
-    ['sin email', { contrasena: 'clave1234' }],
-    ['email numérico', { email: 5, contrasena: 'clave1234' }],
-    ['contraseña numérica', { email: 'a@b.com', contrasena: 12345678 }],
+    ['sin email', { password: 'clave1234' }],
+    ['email numérico', { email: 5, password: 'clave1234' }],
+    ['contraseña numérica', { email: 'a@b.com', password: 12345678 }],
     ['cuerpo vacío', {}],
   ])('400 VALIDACION_FALLIDA con %s', async (_caso, cuerpo) => {
     const res = await ingreso(cuerpo);
@@ -353,11 +354,9 @@ describe('AGENTS §7.1 — Ingreso', () => {
 
   it('no dice si el email existe: mismo estado y mismo mensaje con una contraseña corta', async () => {
     const email = unico();
-    await registro({ nombre: 'Ana', email, contrasena: 'clave1234' }).expect(
-      201,
-    );
-    const a = await ingreso({ email, contrasena: 'otra-clave' });
-    const b = await ingreso({ email: unico(), contrasena: 'otra-clave' });
+    await registro({ nombre: 'Ana', email, password: 'clave1234' }).expect(201);
+    const a = await ingreso({ email, password: 'otra-clave' });
+    const b = await ingreso({ email: unico(), password: 'otra-clave' });
     esperarError(a, 401, 'CREDENCIALES_INVALIDAS');
     esperarError(b, 401, 'CREDENCIALES_INVALIDAS');
     expect(a.body).toEqual(b.body);
@@ -466,7 +465,7 @@ describe('ESPECIFICACION §4 M5 — PATCH /yo { nombre?, telefono?, avisosActivo
     ['teléfono numérico', { telefono: 3446 }],
     ['id', { id: 'usr-otro' }],
     ['creadoEn', { creadoEn: '2020-01-01T00:00:00-03:00' }],
-    ['contrasena', { contrasena: 'nueva-clave-1234' }],
+    ['password', { password: 'nueva-clave-1234' }],
     ['una lista', [{ nombre: 'x' }]],
   ])('400 VALIDACION_FALLIDA con %s', async (_caso, cuerpo) => {
     const v = await crearVecino(ctx, { nombre: 'Intacto' });
@@ -725,7 +724,7 @@ describe('AGENTS §11.4 — Simulación de fallas', () => {
 
     it('error-500 corta antes de ejecutar: el registro no queda hecho', async () => {
       const email = unico();
-      const cuerpo = { nombre: 'Ana', email, contrasena: 'clave1234' };
+      const cuerpo = { nombre: 'Ana', email, password: 'clave1234' };
       const res = await sim
         .http()
         .post('/auth/registro')
@@ -803,7 +802,7 @@ describe('AGENTS §5.5 / §7.1 — Registro simultáneo con el mismo email escri
     const variantes = [email, email.toUpperCase(), `  ${email}  `];
     const respuestas = await Promise.all(
       variantes.map((e) =>
-        registro({ nombre: 'Ana', email: e, contrasena: 'clave1234' }),
+        registro({ nombre: 'Ana', email: e, password: 'clave1234' }),
       ),
     );
     const estados = respuestas.map((r) => r.status).sort();
@@ -820,11 +819,11 @@ describe('AGENTS §7.2 / §6 — El token vence justo a los 30 días del Reloj',
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
     });
     const auth: [string, string] = [
       'Authorization',
-      `Bearer ${res.body.datos.token}`,
+      `Bearer ${res.body.datos.access_token}`,
     ];
     ctx.reloj.mover('2026-10-14T09:59:59-03:00');
     const antes = await ctx
@@ -848,15 +847,15 @@ describe('AGENTS §7.2 / §6 — El token vence justo a los 30 días del Reloj',
     const res = await registro({
       nombre: 'Ana',
       email: unico(),
-      contrasena: 'clave1234',
+      password: 'clave1234',
       telefono: '3446 55',
     });
     const yo = await ctx
       .http()
       .get('/yo')
-      .set('Authorization', `Bearer ${res.body.datos.token}`);
+      .set('Authorization', `Bearer ${res.body.datos.access_token}`);
     esperarContrato(yo, 'Usuario');
-    expect(yo.body.datos).toEqual(res.body.datos.usuario);
+    expect(yo.body.datos).toEqual(res.body.datos.user);
   });
 });
 
@@ -936,7 +935,7 @@ describe('AGENTS §4.6 / §7.3 — El mensaje de validación dice qué está mal
     [
       'registro con teléfono numérico',
       'registro',
-      { nombre: 'Ana', contrasena: 'clave1234', telefono: 5 },
+      { nombre: 'Ana', password: 'clave1234', telefono: 5 },
     ],
   ])(
     '%s: nombra el teléfono y no dice que es "demasiado largo"',

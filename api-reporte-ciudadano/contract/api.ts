@@ -32,8 +32,8 @@ export interface RespuestaError {
 
 /** Respuesta de POST /auth/registro y POST /auth/ingreso. */
 export interface Sesion {
-  token: string;
-  usuario: Usuario;
+  access_token: string;
+  user: Usuario;
 }
 
 /** Respuesta de POST /archivos. */
