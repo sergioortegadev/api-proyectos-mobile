@@ -1,0 +1,67 @@
+# Reporte Ciudadano · stack local: API + PostgreSQL 17 + pgAdmin.
+# Se usa desde esta carpeta (docker/):  docker compose up -d --build
+# Lee las variables de docker/.env (copiá .env.example como .env).
+# Los datos quedan en docker/data/ (fuera de los contenedores y fuera de git).
+name: reporte-ciudadano
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: rc-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${PUERTO_DB:-5432}:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: rc-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PUERTO_PGADMIN:-8080}:80"
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rc-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PUERTO_API:-3000}:3000"
+    environment:
+      PUERTO: "3000"
+      ENTORNO: desarrollo
+      DB_MOTOR: postgres
+      DB_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DB_SINCRONIZAR: "true"
+      SEMBRAR_SI_VACIA: "true"
+      # Datos de demo del grupo (los de los mocks de la app). Sacalo para usar la demo de la cátedra.
+      SEMILLAS: grupo
+      JWT_SECRETO: ${JWT_SECRETO}
+      DIRECTORIO_ARCHIVOS: /app/archivos
+      # Las push quedan fuera de alcance: solo se escriben en la consola de la API.
+      NOTIFICACIONES: registro
+      SIMULACION_HABILITADA: "true"
+      URL_PUBLICA: ""
+    volumes:
+      - ./data/archivos:/app/archivos
+    restart: unless-stopped

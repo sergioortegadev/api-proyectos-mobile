@@ -630,7 +630,7 @@ describe('Especificación §4 M5 — PATCH /yo', () => {
     [{ zonaId: 'zon-norte' }],
     [{ email: 'otro@mail.com' }],
     [{ id: 'usr-999' }],
-    [{ contrasena: 'nueva-clave-123' }],
+    [{ password: 'nueva-clave-123' }],
     [{ password: 'x' }],
     [{ avisosActivos: false, extra: 1 }],
   ])('campos de más %j → 400 VALIDACION_FALLIDA, sin jerga', async (body) => {

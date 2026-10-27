@@ -34,8 +34,9 @@ export class ServicioAuth {
     const usuario = this.usuarios.create({
       id: nuevoId('usr'),
       nombre: dto.nombre,
+      dni: dto.dni ?? null,
       email: dto.email,
-      contrasenaHash: await hashearContrasena(dto.contrasena),
+      contrasenaHash: await hashearContrasena(dto.password),
       telefono: dto.telefono ?? null,
       rol: 'vecino',
       zonaId: null,
@@ -56,7 +57,7 @@ export class ServicioAuth {
   async ingresar(dto: IngresoDto): Promise<Sesion> {
     const usuario = await this.usuarios.findOneBy({ email: dto.email });
     const valida = await verificarContrasena(
-      dto.contrasena,
+      dto.password,
       usuario?.contrasenaHash ?? (await HASH_SENUELO),
     );
     if (!usuario || !valida) throw new ErrorApi('CREDENCIALES_INVALIDAS');
@@ -64,6 +65,9 @@ export class ServicioAuth {
   }
 
   private sesion(usuario: Usuario): Sesion {
-    return { token: this.tokens.firmar(usuario), usuario: aUsuario(usuario) };
+    return {
+      access_token: this.tokens.firmar(usuario),
+      user: aUsuario(usuario),
+    };
   }
 }

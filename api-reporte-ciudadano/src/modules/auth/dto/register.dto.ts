@@ -44,7 +44,7 @@ export class RegistroDto {
     context: { mensaje: MENSAJE_CONTRASENA_CORTA },
   })
   @MaxLength(200)
-  contrasena: string;
+  password: string;
 
   @ApiPropertyOptional({ type: String, nullable: true, example: '3446 412233' })
   @VacioANulo()
@@ -52,4 +52,17 @@ export class RegistroDto {
   @IsString()
   @MaxLength(40, { context: { mensaje: 'El teléfono es demasiado largo.' } })
   telefono?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    example: '30123456',
+    maxLength: 20,
+    description: 'Opcional. Agregado por el grupo (no está en el PRD).',
+  })
+  @VacioANulo()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20, { context: { mensaje: 'El DNI es demasiado largo.' } })
+  dni?: string | null;
 }

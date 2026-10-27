@@ -246,7 +246,10 @@ export class ServicioReportes {
       );
     }
 
-    const creadoEn = parsearInstante(dto.creadoEn);
+    const creadoEn =
+      dto.creadoEn === undefined
+        ? this.reloj.ahora()
+        : parsearInstante(dto.creadoEn);
     if (!creadoEn) throw new ErrorApi('VALIDACION_FALLIDA');
     if (esFechaFutura(creadoEn, this.reloj.ahora())) {
       throw new ErrorApi('FECHA_EN_EL_FUTURO');

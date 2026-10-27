@@ -453,6 +453,16 @@ describe('POST /reportes', () => {
       );
       expect(res.status).toBe(201);
     });
+
+    it('sin creadoEn (cambio del grupo) se usa la hora del servidor', async () => {
+      const res = await crear(
+        vecino,
+        cuerpoReporte(fotoUrl, tipoId, { creadoEn: undefined }),
+      );
+      expect(res.status).toBe(201);
+      esperarContrato(res, 'Reporte');
+      expect(res.body.datos.creadoEn).toBe('2026-09-14T10:00:00-03:00');
+    });
   });
 
   describe('R7 — Tipo', () => {
@@ -494,7 +504,6 @@ describe('POST /reportes', () => {
         'descripción de más de 1000 caracteres',
         { descripcion: 'x'.repeat(1001) },
       ],
-      ['sin creadoEn', { creadoEn: undefined }],
       ['creadoEn sin offset', { creadoEn: '2026-09-14T09:22:00' }],
       ['creadoEn que no es fecha', { creadoEn: 'ayer' }],
       ['creadoEn número', { creadoEn: 1789000000 }],

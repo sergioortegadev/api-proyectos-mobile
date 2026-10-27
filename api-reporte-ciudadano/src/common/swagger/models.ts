@@ -1,9 +1,14 @@
 // Modelos sólo para Swagger: describen los tipos de contract/ con los ejemplos del PRD.
 // La forma real la garantizan los mapeadores (tipados contra contract/) y los tests de contrato.
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UsuarioDoc {
   @ApiProperty({ example: 'usr-084' }) id: string;
+  @ApiPropertyOptional({
+    example: '30123456',
+    description: 'Opcional. Agregado por el grupo (no está en el PRD).',
+  })
+  dni?: string;
   @ApiProperty({ example: 'Norma Pereyra' }) nombre: string;
   @ApiProperty({ example: 'norma@mail.com' }) email: string;
   @ApiProperty({ type: String, nullable: true, example: '3446 412233' })
@@ -23,10 +28,10 @@ export class UsuarioDoc {
 export class SesionDoc {
   @ApiProperty({
     description:
-      'Mandalo en cada pedido: Authorization: Bearer <token>. Dura 30 días.',
+      'Mandalo en cada pedido: Authorization: Bearer <access_token>. Dura 30 días.',
   })
-  token: string;
-  @ApiProperty({ type: UsuarioDoc }) usuario: UsuarioDoc;
+  access_token: string;
+  @ApiProperty({ type: UsuarioDoc }) user: UsuarioDoc;
 }
 
 export class ArchivoSubidoDoc {

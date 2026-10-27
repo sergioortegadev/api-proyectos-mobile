@@ -20,12 +20,21 @@ import { CUADRILLAS_DEMO, TIPOS_DEMO, ZONAS_DEMO } from './data/catalogs.js';
 import { REPORTES_DEMO } from './data/reports.js';
 import { audioDeMuestra, fotoDeMuestra } from './media/generate.js';
 import { CONTRASENA_DEMO, USUARIOS_DEMO } from './data/users.js';
+import { sembrarDelGrupo } from './group.js';
 
+/**
+ * Con SEMILLAS=grupo se carga la demo del grupo (group.ts: los datos de los mocks de la app).
+ * Sin esa variable, la demo de la cátedra.
+ */
 export async function sembrar(
   dataSource: DataSource,
   almacen: AlmacenArchivos,
   reloj: Reloj,
 ): Promise<void> {
+  if (process.env.SEMILLAS === 'grupo') {
+    await sembrarDelGrupo(dataSource, almacen, reloj);
+    return;
+  }
   await sembrarCatalogos(dataSource);
   await sembrarUsuarios(dataSource);
   await sembrarReportes(dataSource, almacen, reloj);

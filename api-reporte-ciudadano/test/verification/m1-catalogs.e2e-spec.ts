@@ -223,7 +223,7 @@ describe('Semillas §8 — usuarios de demo', () => {
       const res = await ctx
         .http()
         .post('/auth/registro')
-        .send({ nombre: 'Otra', email, contrasena: 'una-clave-larga' });
+        .send({ nombre: 'Otra', email, password: 'una-clave-larga' });
       expect(res.status).toBe(409);
       esperarError(res, 409, 'EMAIL_YA_REGISTRADO');
       void id;
